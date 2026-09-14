@@ -15,9 +15,12 @@ from ui.charts import candlestick_figure, render_journal_screenshot
 
 try:
     from db import client as db
+    if "SUPABASE_URL" not in st.secrets or "SUPABASE_KEY" not in st.secrets:
+        raise RuntimeError("SUPABASE_URL/SUPABASE_KEY not found in Streamlit secrets")
     DB_AVAILABLE = True
-except Exception:
+except Exception as _db_init_error:
     DB_AVAILABLE = False
+    _db_init_error_message = str(_db_init_error)
 
 st.set_page_config(page_title="BTC Trade Replay & Paper Trading", layout="wide")
 
@@ -49,7 +52,7 @@ with st.sidebar:
         st.caption(f"Live rate fetch failed: {error}")
 
     if not DB_AVAILABLE:
-        st.error("Database not configured -- trades will NOT persist. Add SUPABASE_URL/SUPABASE_KEY to secrets.")
+        st.error(f"Database not configured -- trades will NOT persist. ({_db_init_error_message})")
 
 
 def current_equity_inr() -> float:
